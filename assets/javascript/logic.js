@@ -22,20 +22,35 @@ var minAway = "TBD";
 
 database.ref().on("child_added", function(snapshot) {
   
-  console.log(snapshot.val().trainName);
-  console.log(snapshot);
-
-  var time = moment();
-  //var result = moment(time).diff(moment(snapshot.val().startDate));
-  //var easier = moment.duration(result).as('months');
-  //var numberOfMonths = Math.floor(easier);
+  /////variables required for time calculations//////
+  var currentTime = moment();
+  var calcFreq = snapshot.val().frequency;
+  var calcTrainTime = snapshot.val().trainTime;
+  ////Push back first Time to make sure it comes before current time//////////
+  var firstTimeConverted = moment(calcTrainTime, "HH:mm").subtract(1, "years");
   
+
+  ////next arrival and minutes away calculations//////
+  var diffTime = moment().diff(moment(firstTimeConverted), "minutes");
+  console.log(diffTime);
+  /////Time apart Remainder/////////////////////////////
+  var timeRemainder = diffTime % calcFreq;
+  console.log(timeRemainder);
+  /////Minutes till next train///////////////////////////
+  var minTillNextTrain = calcFreq - timeRemainder;
+  console.log(minTillNextTrain);
+  ///////Next Train/////////////////////////////////////
+  var nextTrain = moment().add(minTillNextTrain, "minutes");
+  nextTrain = (moment(nextTrain).format("hh:mm A"));
+
+
+  /////////insert new train and times in Train Schedule//////
   $("#tableInsert").append("<t>" +
   "<td scope='col'>" + snapshot.val().trainName + "</td>" +
   "<td scope='col'>" + snapshot.val().destination + "</td>" + 
   "<td scope='col'>" + snapshot.val().frequency + "</td>" +
-  "<td scope='col'>" + nextArrival + "</td>" +
-  "<td scope='col'>" + minAway + "</td>" +
+  "<td scope='col'>" + nextTrain + "</td>" +
+  "<td scope='col'>" + minTillNextTrain + "</td>" +
 "</td>");
 
 });
@@ -48,23 +63,18 @@ $("#add-train-btn").on("click", function(event) {
     // Get the input values
 
     trainName = $("#train-name-input").val().trim();
-     console.log(trainName);
     destination = $("#destination-input").val();
-     console.log(trainName);
-
     trainTime = $("#trainTime-input").val();
-    console.log(trainTime);
-
     frequency = $("#frequency-input").val();
 
-    console.log(frequency);
-    
-
+    ////send to Database////
     database.ref().push({
         trainName: trainName,
         destination: destination,
         trainTime: trainTime,
         frequency: frequency,
+        nextArrival: nextArrival,
+        minAway: minAway,
         dateAdded: firebase.database.ServerValue.TIMESTAMP
     });
 
