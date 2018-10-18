@@ -17,43 +17,38 @@ var trainName;
 var destination;
 var trainTime;
 var frequency;
-var nextArrival = "to be determined";
-var minAway = "TBD";
+var firebasePath;
 
 database.ref().on("child_added", function(snapshot) {
   
-  /////variables required for time calculations//////
-  var currentTime = moment();
-  var calcFreq = snapshot.val().frequency;
-  var calcTrainTime = snapshot.val().trainTime;
-  ////Push back first Time to make sure it comes before current time//////////
-  var firstTimeConverted = moment(calcTrainTime, "HH:mm").subtract(1, "years");
+    /////variables required for time calculations//////
+    var calcFreq = snapshot.val().frequency;
+    var calcTrainTime = snapshot.val().trainTime;
+    ////Push back first Time to make sure it comes before current time//////////
+    var firstTimeConverted = moment(calcTrainTime, "HH:mm").subtract(1, "years");
   
-
-  ////next arrival and minutes away calculations//////
-  var diffTime = moment().diff(moment(firstTimeConverted), "minutes");
-  console.log(diffTime);
-  /////Time apart Remainder/////////////////////////////
-  var timeRemainder = diffTime % calcFreq;
-  console.log(timeRemainder);
-  /////Minutes till next train///////////////////////////
-  var minTillNextTrain = calcFreq - timeRemainder;
-  console.log(minTillNextTrain);
-  ///////Next Train/////////////////////////////////////
-  var nextTrain = moment().add(minTillNextTrain, "minutes");
-  nextTrain = (moment(nextTrain).format("hh:mm A"));
+    ////next arrival and minutes away calculations//////
+    var diffTime = moment().diff(moment(firstTimeConverted), "minutes");
+    /////Time apart Remainder/////////////////////////////
+    var timeRemainder = diffTime % calcFreq;
+    /////Minutes till next train///////////////////////////
+    var minTillNextTrain = calcFreq - timeRemainder;
+    ///////Next Train/////////////////////////////////////
+    var nextTrain = moment().add(minTillNextTrain, "minutes");
+    nextTrain = (moment(nextTrain).format("hh:mm A"));
 
 
-  /////////insert new train and times in Train Schedule//////
-  $("#tableInsert").append("<t>" +
-  "<td scope='col'>" + snapshot.val().trainName + "</td>" +
-  "<td scope='col'>" + snapshot.val().destination + "</td>" + 
-  "<td scope='col'>" + snapshot.val().frequency + "</td>" +
-  "<td scope='col'>" + nextTrain + "</td>" +
-  "<td scope='col'>" + minTillNextTrain + "</td>" +
-"</td>");
-
+    /////////insert new train and times in Train Schedule//////
+  
+    $("#trainsGoHere").append("<t>" +
+    "<td scope='col'>" + snapshot.val().trainName + "</td>" +
+    "<td scope='col'>" + snapshot.val().destination + "</td>" + 
+    "<td scope='col'>" + snapshot.val().frequency + "</td>" +
+    "<td scope='col'>" + nextTrain + "</td>" +
+    "<td scope='col'>" + minTillNextTrain + "</td>" +
+    "</td>");
 });
+
 
 
 $("#add-train-btn").on("click", function(event) {
@@ -73,10 +68,45 @@ $("#add-train-btn").on("click", function(event) {
         destination: destination,
         trainTime: trainTime,
         frequency: frequency,
-        nextArrival: nextArrival,
-        minAway: minAway,
         dateAdded: firebase.database.ServerValue.TIMESTAMP
     });
 
 });
+
+/////////////update times every min///////////////////////////
+setInterval(function() {
+  $("#trainsGoHere").empty();
+  database.ref().on("child_added", function(snapshot) {
+  
+    /////variables required for time calculations//////
+    console.log("upper: " + snapshot.val().frequency);
+    var calcFreq = snapshot.val().frequency;
+    var calcTrainTime = snapshot.val().trainTime;
+    ////Push back first Time to make sure it comes before current time//////////
+    var firstTimeConverted = moment(calcTrainTime, "HH:mm").subtract(1, "years");
+  
+    ////next arrival and minutes away calculations//////
+    var diffTime = moment().diff(moment(firstTimeConverted), "minutes");
+    /////Time apart Remainder/////////////////////////////
+    var timeRemainder = diffTime % calcFreq;
+    /////Minutes till next train///////////////////////////
+    var minTillNextTrain = calcFreq - timeRemainder;
+    ///////Next Train/////////////////////////////////////
+    var nextTrain = moment().add(minTillNextTrain, "minutes");
+    nextTrain = (moment(nextTrain).format("hh:mm A"));
+    
+    $("#trainsGoHere").append("<t>" +
+    "<td scope='col'>" + snapshot.val().trainName + "</td>" +
+    "<td scope='col'>" + snapshot.val().destination + "</td>" + 
+    "<td scope='col'>" + snapshot.val().frequency + "</td>" +
+    "<td scope='col'>" + nextTrain + "</td>" +
+    "<td scope='col'>" + minTillNextTrain + "</td>" +
+    "</td>");
+    
+  });
+  
+}, 60000);
+
+//
+
 
