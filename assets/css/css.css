@@ -1,6 +1,22 @@
+
+
 #train-table th,
     td {
       display: inline-block;
       width: 20%;
-    }
+    } 
+
+#steamEngine {
+  position: absolute;
+  top: 100px;
+  left: -250px;
+  
+}
+
+#jumbo {
+  overflow: hidden;
+  
+}
+
+
 

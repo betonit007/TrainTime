@@ -19,6 +19,8 @@ $(document).ready(function(){
     var destination;
     var trainTime;
     var frequency;
+    var numberTrains = 1;
+    var whistle = new Audio("assets/sounds/sound.mp3");
 
     
 
@@ -45,10 +47,11 @@ $(document).ready(function(){
             $("#trainsGoHere").append("<t>" +
             "<td scope='col'>" + snapshot.val().trainName + "</td>" +
             "<td scope='col'>" + snapshot.val().destination + "</td>" + 
-            "<td scope='col'>" + snapshot.val().frequency + "</td>" +
-            "<td scope='col'>" + nextTrain + "</td>" +
-            "<td scope='col'>" + minTillNextTrain + "</td>" +
+            "<td scope='col' id='freq" + numberTrains + "'>" + snapshot.val().frequency + "</td>" +
+            "<td scope='col' id='nextA" + numberTrains + "'>" + nextTrain + "</td>" +
+            "<td scope='col' id='minAway" + numberTrains + "'>" + minTillNextTrain + "</td>" +
             "</td>");
+            numberTrains++;
         }
     });
 
@@ -87,8 +90,40 @@ $(document).ready(function(){
 
     /////update times every min///////////////////////////
     setInterval(function () {
-        location.reload();
+        for(var i = 1; i < numberTrains; i++) {
+            var timer = parseInt($("#minAway" + i).text());
+            timer--;
+            var freqer = parseInt($("#freq" + i).text());
+            
+            ////////////update next Arrival Time//////////////
+            if (timer === 0) {
+                $("#minAway" + i).text(freqer);
+                var getArrival = $("#nextA" + i).text();
+                var updatedArrival = moment(getArrival, "hh:mm A").add(freqer, "minutes").format("hh:mm A");
+                $("#nextA" + i).text(updatedArrival);
+                ////////animate Train .gif across screen on departure///////
+                trainDeparts();
+                
+            
+                
+            /////update mins away////////////////
+            }
+            else {
+                $("#minAway" + i).text(timer);
+            }
+        }
+
     }, 60000)
+
+    function trainDeparts() {
+
+        whistle.play();
+        $("#jumbo").prepend("<img id='steamEngine' src='assets/images/steamer.gif'>");
+        $("#steamEngine").animate({left: "80%"}, 3000, "swing");
+        setTimeout(function(){ $("#steamEngine").remove(); }, 3100);
+
+
+    }
 
 
 });
